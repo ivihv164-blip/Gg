@@ -1,0 +1,81 @@
+local P=game:GetService("Players")
+local U=game:GetService("UserInputService")
+local R=game:GetService("RunService")
+local p=P.LocalPlayer
+
+local fly,jump,xray,hide=false,false,false,false
+local speed=16
+
+local g=Instance.new("ScreenGui",p:WaitForChild("PlayerGui"))
+g.Name="BoomBoomMenu"
+
+local f=Instance.new("Frame",g)
+f.Size=UDim2.new(0,180,0,300)
+f.Position=UDim2.new(0,20,0.5,-150)
+f.BackgroundTransparency=.15
+
+local function btn(t,y,fn)
+ local b=Instance.new("TextButton",f)
+ b.Size=UDim2.new(1,-20,0,40)
+ b.Position=UDim2.new(0,10,0,y)
+ b.Text=t
+ b.TextScaled=true
+ b.MouseButton1Click:Connect(fn)
+ return b
+end
+
+local bf=btn("บิน: OFF",10,function()
+ fly=not fly;bf.Text="บิน: "..(fly and "ON" or "OFF")
+end)
+
+local bj=btn("กระโดด: OFF",60,function()
+ jump=not jump;bj.Text="กระโดด: "..(jump and "ON" or "OFF")
+end)
+
+local bx=btn("มองทะลุ: OFF",110,function()
+ xray=not xray;bx.Text="มองทะลุ: "..(xray and "ON" or "OFF")
+ for _,v in pairs(P:GetPlayers()) do
+  if v~=p and v.Character then
+   for _,x in pairs(v.Character:GetDescendants()) do
+    if x:IsA("BasePart") then x.LocalTransparencyModifier=xray and .5 or 0 end
+   end
+  end
+ end
+end)
+
+local bh=btn("ล่องหน: OFF",160,function()
+ hide=not hide;bh.Text="ล่องหน: "..(hide and "ON" or "OFF")
+ local c=p.Character
+ if c then
+  for _,x in pairs(c:GetDescendants()) do
+   if x:IsA("BasePart") or x:IsA("Decal") then
+    x.LocalTransparencyModifier=hide and 1 or 0
+   end
+  end
+ end
+end)
+
+local bs=btn("วิ่งเร็ว",210,function()
+ speed=speed==16 and 50 or 16
+ if p.Character and p.Character:FindFirstChildOfClass("Humanoid") then
+  p.Character:FindFirstChildOfClass("Humanoid").WalkSpeed=speed
+ end
+end)
+
+local bc=btn("ปิดเมนู",260,function()
+ g.Enabled=false
+end)
+
+U.JumpRequest:Connect(function()
+ if jump and p.Character then
+  local h=p.Character:FindFirstChildOfClass("Humanoid")
+  if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
+ end
+end)
+
+R.RenderStepped:Connect(function()
+ if fly and p.Character then
+  local r=p.Character:FindFirstChild("HumanoidRootPart")
+  if r then r.Velocity=workspace.CurrentCamera.CFrame.LookVector*60 end
+ end
+end)
